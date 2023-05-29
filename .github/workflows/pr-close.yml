@@ -1,10 +1,9 @@
 name: BlissRoms Pull Request Comment and Close
 
 on:
-  pull_request:
+  repository_dispatch:
     types:
-      - opened
-      - synchronize
+      - pull_request
 
 jobs:
   comment_and_close:
@@ -15,20 +14,20 @@ jobs:
 
       - name: Comment on Pull Request
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.client_payload.pull_request.number }}
           ORGANIZATION: BlissRoms
           YOUR_NAME: "Team Bliss"
         run: |
-          PR_URL="${{ github.event.pull_request.html_url }}"
-          CONTRIBUTOR="${{ github.event.pull_request.user.login }}"
+          PR_URL="${{ github.event.client_payload.pull_request.html_url }}"
+          CONTRIBUTOR="${{ github.event.client_payload.pull_request.user.login }}"
           COMMENT="Hi @${CONTRIBUTOR},\n\nThank you for your contribution to BlissRoms! We really appreciate your effort and the changes you've made. Your work aligns well with our project's goals and we'd like to review it further.\n\nTo streamline our review and collaboration process, we kindly request that you submit your changes directly to our BlissRoms Gerrit instance instead of creating a pull request on the repository. By doing so, we can ensure that your contribution goes through our standard review workflow and enables us to provide more detailed feedback.\n\nHere are the steps to submit your changes to BlissRoms Gerrit:\n\n1. Create an account on our Gerrit instance if you haven't already done so.\n2. Clone the BlissRoms Gerrit repository to your local machine:\n   $ git clone https://review.blissroms.org/<repo_name>\n3. Create a new branch for your changes:\n   $ git checkout -b your-branch-name\n4. Apply your modifications to the codebase.\n5. Commit your changes:\n   $ git commit -a -m \"Your commit message\"\n6. Push your changes to Gerrit:\n   $ git push origin HEAD:refs/for/master\n\nOnce your changes are pushed, our team of reviewers will be able to provide feedback, discuss any necessary modifications, and eventually merge your contribution into BlissRoms.\n\nIf you have any questions or encounter any issues during this process, please don't hesitate to reach out. We're here to assist you.\n\nThanks again for your valuable contribution. We look forward to reviewing and incorporating your changes into BlissRoms!\n\nBest regards,\n${YOUR_NAME}"
           curl -X POST -H "Authorization: Bearer ${{ secrets.PERSONAL_TOKEN }}" \
           -d "{\"body\": \"$COMMENT\"}" \
-          "https://api.github.com/orgs/${ORGANIZATION}/repos/*/pulls/${PR_NUMBER}/comments"
+          "https://api.github.com/repos/${ORGANIZATION}/*/pulls/${PR_NUMBER}/comments"
 
       - name: Close Pull Request
         env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_NUMBER: ${{ github.event.client_payload.pull_request.number }}
           ORGANIZATION: BlissRoms
         run: |
           curl -X PATCH -H "Authorization: Bearer ${{ secrets.PERSONAL_TOKEN }}" \
