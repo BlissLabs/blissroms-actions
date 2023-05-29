@@ -1,0 +1,32 @@
+name: BlissRoms Pull Request Comment and Close
+
+on:
+  pull_request:
+    types:
+      - opened
+
+jobs:
+  comment_and_close:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Out Repository
+        uses: actions/checkout@v2
+
+      - name: Comment on Pull Request
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ORGANIZATION: BlissRoms
+          COMMENT: "Thank you for creating the pull request!"
+        run: |
+          curl -X POST -H "Authorization: Bearer ${{ secrets.PERSONAL_TOKEN }}" \
+          -d "{\"body\": \"$COMMENT\"}" \
+          "https://api.github.com/repos/${ORGANIZATION}/*/pulls/${PR_NUMBER}/comments"
+
+      - name: Close Pull Request
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          ORGANIZATION: BlissRoms
+        run: |
+          curl -X PATCH -H "Authorization: Bearer ${{ secrets.PERSONAL_TOKEN }}" \
+          -d "{\"state\": \"closed\"}" \
+          "https://api.github.com/repos/${ORGANIZATION}/*/pulls/${PR_NUMBER}"
